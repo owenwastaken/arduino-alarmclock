@@ -7,8 +7,8 @@ void setup() {
   lcd.begin(16, 2);
   // start init system
   scn = -1;
-  mte = 59;
-  hr = 23;
+  mte = 0;
+  hr = 0;
 }
 
 void loop() {
