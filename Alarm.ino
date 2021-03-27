@@ -1,6 +1,13 @@
 #include <LiquidCrystal.h>
 
-LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
+int lcd1 = 2;
+int lcd2 = 3;
+int lcd3 = 5;
+int lcd4 = 4;
+int lcd5 = 6;
+int lcd6 = 7;
+
+LiquidCrystal lcd(lcd1, lcd2, lcd3, lcd4, lcd5, lcd6);
 int scn, mte, hr;
 
 void setup() {
