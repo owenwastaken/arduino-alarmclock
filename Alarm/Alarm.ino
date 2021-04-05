@@ -10,6 +10,8 @@ For more information, please refer to <http://unlicense.org/>
 
 Some sample code was used from the DS3231.h github repository which is also licensed under The Unlicense
 https://github.com/NorthernWidget/DS3231
+
+To switch the date format from MM/DD/YY to DD/MM/YY, go down to the bottom of the script
 */
 
 #include <LiquidCrystal.h>
@@ -29,6 +31,9 @@ const int lcd6 = 7;
 const int button1 = 8; //Up and alarm toggle button
 const int button2 = 9; //Down and alarm set button
 const int button3 = 10; //Set button
+const int buzzerpin = 11; //Buzzer pin
+const int buzzerfreq = 250; //defualt buzzer frequency
+const int buzzertime = 5; //Time that each tone is played
 
 //Custom alarm icon created using https://maxpromer.github.io/LCD-Character-Creator/
 //This can be changed to whatever icon you want
@@ -48,25 +53,32 @@ LiquidCrystal lcd(lcd1, lcd2, lcd3, lcd4, lcd5, lcd6);
 
 //The settime function is used for setting the time.
 //This had to go before setup() and loop() for it to work with older versions of the Arduino IDE
-int settime(String timeunit, int maxnumber = 60, int minnumber = 0)
+int settime(String timeunit, int maxnumber = 59, int minnumber = 0)
 {
   int time = minnumber;
   int settime = 1;
   while(settime == 1)
     {
       int upstate, downstate, setstate;
+      bool dodelay;
       lcd.setCursor(0, 0);
       lcd.print("Set ");
       lcd.print(timeunit);
       lcd.setCursor(0, 1);
       lcd.print(time);
       lcd.print(" ");
+      if(dodelay == true)
+      {
+        delay(250);
+        dodelay = false;
+      }
       upstate = digitalRead(button1); //The button# variables are global and can be accessed from inside of a function
       downstate = digitalRead(button2);
       setstate = digitalRead(button3);
-      delay(250);
       if(upstate == LOW)
       {
+        tone(buzzerpin, buzzerfreq, buzzertime);
+        dodelay = true;
         if(time == maxnumber)
         {
           time = minnumber;
@@ -78,9 +90,14 @@ int settime(String timeunit, int maxnumber = 60, int minnumber = 0)
       }
       if(downstate == LOW)
       {
+        tone(buzzerpin, buzzerfreq, buzzertime);
+        dodelay = true;
         if(time == minnumber)
         {
-          time = maxnumber;
+          if(maxnumber > 0)
+          {
+            time = maxnumber;
+          }
         }
         else
         {
@@ -89,7 +106,7 @@ int settime(String timeunit, int maxnumber = 60, int minnumber = 0)
       }
       if(setstate == LOW)
       {
-        settime = 0;
+        tone(buzzerpin, buzzerfreq, buzzertime);
         return(time);
       }
     }
@@ -111,11 +128,16 @@ void setup() {
 
   //All of this is for setting the time
   Clock.setClockMode(false); //Sets to 24 hour mode
-  Clock.setHour(settime("Hour  ", 24)); //The settime function has a default max value of 60, so we only have to declare it here
+  Clock.setHour(settime("Hour  ", 23)); //The settime function has a default max value of 60, so we only have to declare it here
+  delay(500);
   Clock.setMinute(settime("Minute"));
+  delay(500);
   Clock.setSecond(settime("Second"));
-  Clock.setDate(settime("Day   ", 31));
-  Clock.setMonth(settime("Month", 12));
+  delay(500);
+  Clock.setDate(settime("Day   ", 31, 1));
+  delay(500);
+  Clock.setMonth(settime("Month", 12, 1));
+  delay(500);
   Clock.setYear(settime("Year  ", -1, 2000) - 48); //Had to subtract 48 because the RTC module's system time starts in 1973
   lcd.clear();
 }
@@ -123,7 +145,6 @@ void setup() {
 void loop() {
   DateTime now = myRTC.now();
   int hour, day, month, year;
-  int oldhour = -1; // Making the variable oldhour a value that hour can never be to force an update of the date, month, and year.
   bool alarm;
   int button1state = digitalRead(button1); //Button 1 is the alarm toggle button
   int button2state = digitalRead(button2); //Button 2 is the alarm set button
@@ -131,16 +152,16 @@ void loop() {
   if(button1state == LOW)
   {
     lcd.setCursor(0, 0); //We are going to be printing something to the LCD no matter whhat the outcome of the if statement is
-    if(alarm == TRUE)
+    if(alarm == true)
     {
       //Turns the alarm off
-      alarm = FALSE;
+      alarm = false;
       lcd.print("Alarm OFF");
     }
     else //If alarm == false
     {
       //Turns the alarm on
-      alarm = TRUE;
+      alarm = true;
       lcd.print("Alarm ON");
     }
     delay(2000);
@@ -148,18 +169,14 @@ void loop() {
 
   if(button2state == LOW)
   {
+    tone
     //Put alarm set code here
   }
 
   hour = now.hour();
-
-  //This if statement makes it so the program will only update the date, month and year every hour instead of every second
-  if(hour =! oldhour);
-  {
-    day = now.day();
-    month = now.month();
-    year = now.year();
-  }
+  day = now.day();
+  month = now.month();
+  year = now.year();
 
   //This code block just displays the current time and date onto the lcd
   lcd.setCursor(0, 0);
@@ -170,23 +187,35 @@ void loop() {
   lcd.print(now.second());
   lcd.print("     ");
   lcd.setCursor(15, 0);
-  if(alarm == TRUE)
+  if(alarm == true)
   {
     //Prints the alarm indocator in the top corner
-    lcd.write(1); //
+    lcd.write(1);
   }
   else
   {
-    lcd.print(" ");
+    lcd.print("  ");
   }
-  lcd.setCursor(0, 1); //Moves down to second line
+
+  lcd.setCursor(0, 1); //Moves down to second line for printing the date
+
+  //To change the format just comment out the US code block and uncomment the EU code block
+
+  //This code prints the US date format MM/DD/YY
+  lcd.print(now.month());
+  lcd.print("/");
+  lcd.print(now.day());
+  lcd.print("/");
+  lcd.print(now.year());
+
+  //This code prints in the EU date format DD/MM/YY
+  /*
   lcd.print(now.day());
   lcd.print("/");
   lcd.print(now.month());
   lcd.print("/");
   lcd.print(now.year());
-
-    //Future alarm code will go here
+  */
 
   delay(1000);
 }
