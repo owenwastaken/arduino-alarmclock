@@ -26,9 +26,22 @@ const int lcd3 = 4;
 const int lcd4 = 5;
 const int lcd5 = 6;
 const int lcd6 = 7;
-const int upbutton = 8;
-const int downbutton = 9;
-const int setbutton = 10;
+const int button1 = 8; //Up and alarm toggle button
+const int button2 = 9; //Down and alarm set button
+const int button3 = 10; //Set button
+
+//Custom alarm icon created using https://maxpromer.github.io/LCD-Character-Creator/
+//This can be changed to whatever icon you want
+byte alarmIcon[] = {
+  B00000,
+  B01110,
+  B10101,
+  B10101,
+  B10111,
+  B10001,
+  B01110,
+  B00000
+};
 
 //Change this if you are connecting the LCD to different pins than the ones showed in the readme file
 LiquidCrystal lcd(lcd1, lcd2, lcd3, lcd4, lcd5, lcd6);
@@ -48,9 +61,9 @@ int settime(String timeunit, int maxnumber = 60, int minnumber = 0)
       lcd.setCursor(0, 1);
       lcd.print(time);
       lcd.print(" ");
-      upstate = digitalRead(upbutton); //The button variables are global and can be accessed from inside of a function
-      downstate = digitalRead(downbutton);
-      setstate = digitalRead(setbutton);
+      upstate = digitalRead(button1); //The button# variables are global and can be accessed from inside of a function
+      downstate = digitalRead(button2);
+      setstate = digitalRead(button3);
       delay(250);
       if(upstate == LOW)
       {
@@ -86,13 +99,15 @@ void setup() {
 
   //Initiate the connection to the RTC module and buttons
   Wire.begin();
-  pinMode(upbutton, INPUT);
-  pinMode(downbutton, INPUT);
-  pinMode(setbutton, INPUT);
+  pinMode(button1, INPUT);
+  pinMode(button2, INPUT);
+  pinMode(button3, INPUT);
 
   //This may be different for your LCD.
   //Change to (number of characters on one line, number of lines)
   lcd.begin(16, 2);
+
+  lcd.createChar(1, alarmIcon); //Creating the alarmIcon LCD character in slot 1
 
   //All of this is for setting the time
   Clock.setClockMode(false); //Sets to 24 hour mode
@@ -109,6 +124,33 @@ void loop() {
   DateTime now = myRTC.now();
   int hour, day, month, year;
   int oldhour = -1; // Making the variable oldhour a value that hour can never be to force an update of the date, month, and year.
+  bool alarm;
+  int button1state = digitalRead(button1); //Button 1 is the alarm toggle button
+  int button2state = digitalRead(button2); //Button 2 is the alarm set button
+
+  if(button1state == LOW)
+  {
+    lcd.setCursor(0, 0); //We are going to be printing something to the LCD no matter whhat the outcome of the if statement is
+    if(alarm == TRUE)
+    {
+      //Turns the alarm off
+      alarm = FALSE;
+      lcd.print("Alarm OFF");
+    }
+    else //If alarm == false
+    {
+      //Turns the alarm on
+      alarm = TRUE;
+      lcd.print("Alarm ON");
+    }
+    delay(2000);
+  }
+
+  if(button2state == LOW)
+  {
+    //Put alarm set code here
+  }
+
   hour = now.hour();
 
   //This if statement makes it so the program will only update the date, month and year every hour instead of every second
@@ -127,6 +169,16 @@ void loop() {
   lcd.print(":");
   lcd.print(now.second());
   lcd.print("     ");
+  lcd.setCursor(15, 0);
+  if(alarm == TRUE)
+  {
+    //Prints the alarm indocator in the top corner
+    lcd.write(1); //
+  }
+  else
+  {
+    lcd.print(" ");
+  }
   lcd.setCursor(0, 1); //Moves down to second line
   lcd.print(now.day());
   lcd.print("/");
