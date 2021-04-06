@@ -33,7 +33,7 @@ const int button2 = 9; //Down and alarm set button
 const int button3 = 10; //Set button
 const int buzzerpin = 11; //Buzzer pin
 const int buzzerfreq = 250; //defualt buzzer frequency
-const int buzzertime = 5; //Time that each tone is played
+const int buzzertime = 5; //Time that each tone is played (MS)
 
 //Custom alarm icon created using https://maxpromer.github.io/LCD-Character-Creator/
 //This can be changed to whatever icon you want
@@ -48,7 +48,7 @@ byte alarmIcon[] = {
   B00000
 };
 
-//Change this if you are connecting the LCD to different pins than the ones showed in the readme file
+//Change this if you are connecting the LCD to different pins than the ones showed in the readme file and diagram
 LiquidCrystal lcd(lcd1, lcd2, lcd3, lcd4, lcd5, lcd6);
 
 //The settime function is used for setting the time.
@@ -112,20 +112,9 @@ int settime(String timeunit, int maxnumber = 59, int minnumber = 0)
     }
 }
 
-void setup() {
-
-  //Initiate the connection to the RTC module and buttons
-  Wire.begin();
-  pinMode(button1, INPUT);
-  pinMode(button2, INPUT);
-  pinMode(button3, INPUT);
-
-  //This may be different for your LCD.
-  //Change to (number of characters on one line, number of lines)
-  lcd.begin(16, 2);
-
-  lcd.createChar(1, alarmIcon); //Creating the alarmIcon LCD character in slot 1
-
+void completeset()
+{
+  DateTime now = myRTC.now();
   //All of this is for setting the time
   Clock.setClockMode(false); //Sets to 24 hour mode
   Clock.setHour(settime("Hour  ", 23)); //The settime function has a default max value of 60, so we only have to declare it here
@@ -139,6 +128,49 @@ void setup() {
   Clock.setMonth(settime("Month", 12, 1));
   delay(500);
   Clock.setYear(settime("Year  ", -1, 2000) - 48); //Had to subtract 48 because the RTC module's system time starts in 1973
+}
+
+void setup() {
+  bool setloop = true;
+  //Initiate the connection to the RTC module and buttons
+  Wire.begin();
+  DateTime now = myRTC.now();
+  pinMode(button1, INPUT);
+  pinMode(button2, INPUT);
+  pinMode(button3, INPUT);
+
+  //This may be different for your LCD.
+  //Change to (number of characters on one line, number of lines)
+  lcd.begin(16, 2);
+
+  lcd.createChar(1, alarmIcon); //Creating the alarmIcon LCD character in slot 1
+
+  lcd.setCursor(0, 0);
+  lcd.print("Is time correct?");
+  lcd.setCursor(0, 1);
+  lcd.print(now.hour());
+  lcd.print(":");
+  lcd.print(now.minute());
+  lcd.print(":");
+  lcd.print(now.second());
+  while(setloop == true);
+  {
+    int button1state = digitalRead(button1);
+    int button2state = digitalRead(button2);
+    int button3state = digitalRead(button3);
+    if((button1state == LOW)||(button2state == LOW))
+    {
+      //The user is telling us that the RTC time is incorrect and needs to go through the setup process
+      completeset();
+      setloop = false;
+    }
+    if(button3state == LOW)
+    {
+      //The user is telling us that the RTC clock is already set correctly so we do not need to reset it
+      setloop = false;
+    }
+  }
+
   lcd.clear();
 }
 
@@ -148,6 +180,7 @@ void loop() {
   bool alarm;
   int button1state = digitalRead(button1); //Button 1 is the alarm toggle button
   int button2state = digitalRead(button2); //Button 2 is the alarm set button
+  int button3state = digitalRead(button3); //Button 3 will set the time
 
   if(button1state == LOW)
   {
@@ -157,26 +190,27 @@ void loop() {
       //Turns the alarm off
       alarm = false;
       lcd.print("Alarm OFF");
+      //Put code here that changes the RTC alarm to OFF
     }
     else //If alarm == false
     {
       //Turns the alarm on
       alarm = true;
       lcd.print("Alarm ON");
+      //Put code here that changes the RTC alarm to ON
     }
     delay(2000);
   }
 
   if(button2state == LOW)
   {
-    tone
     //Put alarm set code here
   }
 
-  hour = now.hour();
-  day = now.day();
-  month = now.month();
-  year = now.year();
+  if(button3state == LOW)
+  {
+    completeset();
+  }
 
   //This code block just displays the current time and date onto the lcd
   lcd.setCursor(0, 0);
