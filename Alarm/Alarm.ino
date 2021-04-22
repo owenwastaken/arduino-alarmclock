@@ -51,6 +51,19 @@ byte alarmIcon[] = {
 //Change this if you are connecting the LCD to different pins than the ones showed in the readme file and diagram
 LiquidCrystal lcd(lcd1, lcd2, lcd3, lcd4, lcd5, lcd6);
 
+//This function detects if a button is being pressed
+bool buttonpressed(int pin)
+{
+  if(digitalRead(pin) == LOW)
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+
 //The settime function is used for setting the time.
 //This had to go before setup() and loop() for it to work with older versions of the Arduino IDE
 int settime(String timeunit, int maxnumber = 59, int minnumber = 0)
@@ -72,10 +85,7 @@ int settime(String timeunit, int maxnumber = 59, int minnumber = 0)
         delay(250);
         dodelay = false;
       }
-      upstate = digitalRead(button1); //The button# variables are global and can be accessed from inside of a function
-      downstate = digitalRead(button2);
-      setstate = digitalRead(button3);
-      if(upstate == LOW)
+      if(buttonpressed(button1))
       {
         tone(buzzerpin, buzzerfreq, buzzertime);
         dodelay = true;
@@ -88,7 +98,7 @@ int settime(String timeunit, int maxnumber = 59, int minnumber = 0)
           time = time + 1;
         }
       }
-      if(downstate == LOW)
+      if(buttonpressed(button2))
       {
         tone(buzzerpin, buzzerfreq, buzzertime);
         dodelay = true;
@@ -104,7 +114,7 @@ int settime(String timeunit, int maxnumber = 59, int minnumber = 0)
           time = time - 1;
         }
       }
-      if(setstate == LOW)
+      if(buttonpressed(button3))
       {
         tone(buzzerpin, buzzerfreq, buzzertime);
         return(time);
@@ -144,47 +154,17 @@ void setup() {
   lcd.begin(16, 2);
 
   lcd.createChar(1, alarmIcon); //Creating the alarmIcon LCD character in slot 1
-
-  lcd.setCursor(0, 0);
-  lcd.print("Is time correct?");
-  lcd.setCursor(0, 1);
-  lcd.print(now.hour());
-  lcd.print(":");
-  lcd.print(now.minute());
-  lcd.print(":");
-  lcd.print(now.second());
-  while(setloop == true);
-  {
-    int button1state = digitalRead(button1);
-    int button2state = digitalRead(button2);
-    int button3state = digitalRead(button3);
-    if((button1state == LOW)||(button2state == LOW))
-    {
-      //The user is telling us that the RTC time is incorrect and needs to go through the setup process
-      completeset();
-      setloop = false;
-    }
-    if(button3state == LOW)
-    {
-      //The user is telling us that the RTC clock is already set correctly so we do not need to reset it
-      setloop = false;
-    }
-  }
-
-  lcd.clear();
 }
 
 void loop() {
   DateTime now = myRTC.now();
   int hour, day, month, year;
   bool alarm;
-  int button1state = digitalRead(button1); //Button 1 is the alarm toggle button
-  int button2state = digitalRead(button2); //Button 2 is the alarm set button
-  int button3state = digitalRead(button3); //Button 3 will set the time
 
-  if(button1state == LOW)
+  if(buttonpressed(button1)) //Button 1 is the alarm toggle button
   {
-    lcd.setCursor(0, 0); //We are going to be printing something to the LCD no matter whhat the outcome of the if statement is
+    lcd.clear();
+    lcd.setCursor(0, 0);
     if(alarm == true)
     {
       //Turns the alarm off
@@ -202,19 +182,20 @@ void loop() {
     delay(2000);
   }
 
-  if(button2state == LOW)
+  if(buttonpressed(button2)) //Button 2 is the alarm set button
   {
     //Put alarm set code here
   }
 
-  if(button3state == LOW)
+  if(buttonpressed(button3)) //Button 3 will set the time
   {
+    lcd.clear();
     completeset();
   }
 
   //This code block just displays the current time and date onto the lcd
   lcd.setCursor(0, 0);
-  lcd.print(hour);
+  lcd.print(now.hour());
   lcd.print(":");
   lcd.print(now.minute());
   lcd.print(":");
