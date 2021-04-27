@@ -66,13 +66,23 @@ bool buttonpressed(int pin)
 
 //The settime function is used for setting the time.
 //This had to go before setup() and loop() for it to work with older versions of the Arduino IDE
-int settime(String timeunit, int maxnumber = 59, int minnumber = 0)
+int settime(String timeunit, int currentnumber, int maxnumber = 59, int minnumber = 0)
 {
-  int time = minnumber;
+  int time;
+
+  if(currentnumber < minnumber)
+  {
+    time = minnumber;
+  }
+  else
+  {
+    time = currentnumber;
+  }
+
   int settime = 1;
+  lcd.clear();
   while(settime == 1)
     {
-      int upstate, downstate, setstate;
       bool dodelay;
       lcd.setCursor(0, 0);
       lcd.print("Set ");
@@ -127,17 +137,17 @@ void completeset()
   DateTime now = myRTC.now();
   //All of this is for setting the time
   Clock.setClockMode(false); //Sets to 24 hour mode
-  Clock.setHour(settime("Hour  ", 23)); //The settime function has a default max value of 60, so we only have to declare it here
+  Clock.setHour(settime("Hour", now.hour(), 23)); //The settime function has a default max value of 60, so we only have to declare it here
   delay(500);
-  Clock.setMinute(settime("Minute"));
+  Clock.setMinute(settime("Minute", now.minute()));
   delay(500);
-  Clock.setSecond(settime("Second"));
+  Clock.setSecond(settime("Second", now.second()));
   delay(500);
-  Clock.setDate(settime("Day   ", 31, 1));
+  Clock.setDate(settime("Day", now.day(), 31, 1));
   delay(500);
-  Clock.setMonth(settime("Month", 12, 1));
+  Clock.setMonth(settime("Month", now.month(), 12, 1));
   delay(500);
-  Clock.setYear(settime("Year  ", -1, 2000) - 48); //Had to subtract 48 because the RTC module's system time starts in 1973
+  Clock.setYear(settime("Year", now.year(), -1, 2000) - 48); //Had to subtract 48 because the RTC module's system time starts in 1973
 }
 
 void setup() {
@@ -158,8 +168,12 @@ void setup() {
 
 void loop() {
   DateTime now = myRTC.now();
-  int hour, day, month, year;
+  int hour, minute, day, month, year;
+  int alarmhour, alarmmin;
   bool alarm;
+
+  hour = now.hour();
+  minute = now.minute();
 
   if(buttonpressed(button1)) //Button 1 is the alarm toggle button
   {
@@ -195,21 +209,23 @@ void loop() {
 
   //This code block just displays the current time and date onto the lcd
   lcd.setCursor(0, 0);
-  lcd.print(now.hour());
+  lcd.print(hour);
   lcd.print(":");
-  lcd.print(now.minute());
+  lcd.print(minute);
   lcd.print(":");
   lcd.print(now.second());
   lcd.print("     ");
   lcd.setCursor(15, 0);
+
   if(alarm == true)
   {
-    //Prints the alarm indocator in the top corner
-    lcd.write(1);
-  }
-  else
-  {
-    lcd.print("  ");
+    if(hour == alarmhour);
+    {
+      if(minute == alarmmin);
+      {
+        lcd.print(".");
+      }
+    }
   }
 
   lcd.setCursor(0, 1); //Moves down to second line for printing the date
