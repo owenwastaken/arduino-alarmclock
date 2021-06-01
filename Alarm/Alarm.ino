@@ -11,7 +11,7 @@ For more information, please refer to <http://unlicense.org/>
 Some sample code was used from the DS3231.h github repository which is also licensed under The Unlicense
 https://github.com/NorthernWidget/DS3231
 
-To switch the date format from MM/DD/YY to DD/MM/YY, go down to the bottom of the script
+To switch the date format from MM/DD/YY to DD/MM/YY or YYYY/MM/DD, go down to the bottom of the script
 */
 
 #include <LiquidCrystal.h>
@@ -40,7 +40,7 @@ const int buzzertime = 5; //Time that each tone is played (MS)
 const int alarmtime = 500; //How long the alarm beep is (MS)
 const int alarmfreq = 450; //Alarm frequency
 
-int oldhour = -1;
+int oldhour = -1; //Used for limiting the polling of day, month, and year from RTC
 
 //Custom  alarm icon created using https://maxpromer.github.io/LCD-Character-Creator/
 //This can be changed to whatever icon you want
@@ -60,14 +60,8 @@ LiquidCrystal lcd(lcd1, lcd2, lcd3, lcd4, lcd5, lcd6);
 //This function detects if a button is being pressed
 bool buttonpressed(int pin)
 {
-  if(digitalRead(pin) == LOW)
-  {
-    return true;
-  }
-  else
-  {
-    return false;
-  }
+  if (digitalRead(pin) == LOW) return true;
+  else return false;
 }
 
 //The settime function is used for setting the time.
@@ -76,14 +70,9 @@ int settime(String timeunit, int currentnumber, int maxnumber = 59, int minnumbe
 {
   int time;
 
-  if(currentnumber < minnumber)
-  {
-    time = minnumber;
-  }
-  else
-  {
-    time = currentnumber;
-  }
+  //Might not be needed, may be removed for final release
+  if(currentnumber < minnumber) time = minnumber;
+  else time = currentnumber;
 
   lcd.clear();
   while(true)
@@ -195,7 +184,7 @@ void loop() {
   minute = now.minute();
   second = now.second();
 
-  //Made to limit the refresh rate for month, day and year to preserve RTC battery
+  //Made to limit polling for month, day and year to preserve RTC battery
   if(hour != oldhour){
     month = now.month();
     day = now.day();
@@ -206,7 +195,7 @@ void loop() {
   {
     lcd.clear();
     lcd.setCursor(0, 0);
-    if(alarm == true)
+    if(alarm)
     {
       //Turns the alarm off
       alarm = false;
@@ -216,6 +205,7 @@ void loop() {
     {
       //Turns the alarm on
       alarm = true;
+      lcd.print("Alarm ON");
     }
     delay(2000);
   }
@@ -266,26 +256,42 @@ void loop() {
     playalarm();
   }
 
-  //Print Alarm symbol. Code coming soon!
+  lcd.setCursor(15, 0);
+  if(alarm){
+    lcd.write(1);
+  }
+  else{
+    lcd.print("  ");
+  }
+  //Print Alarm symbol
 
   lcd.setCursor(0, 1); //Moves down to second line for printing the date
 
   //To change the format just comment out the US code block and uncomment the EU code block
 
-  //This code prints the US date format MM/DD/YY
+  //This code prints the US date format MM/DD/YYYY
   lcd.print(month);
   lcd.print("/");
   lcd.print(day);
   lcd.print("/");
   lcd.print(year);
 
-  //This code prints in the EU date format DD/MM/YY
+  //This code prints in the EU date format DD/MM/YYYY
   /*
   lcd.print(day);
   lcd.print("/");
   lcd.print(month);
   lcd.print("/");
   lcd.print(year);
+  */
+
+  //This code prints in the ISO date format YYYY/MM/DD
+  /*
+  lcd.print(year);
+  lcd.print("/");
+  lcd.print(month);
+  lcd.print("/");
+  lcd.print(day);
   */
 
   delay(1000);
