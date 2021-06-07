@@ -54,15 +54,11 @@ byte alarmIcon[] = {
   B01110,
   B00000};
 
-//Change this if you are connecting the LCD to different pins than the ones showed in the readme file and diagram
+//Initiating LCD with pins set above
 LiquidCrystal lcd(lcd1, lcd2, lcd3, lcd4, lcd5, lcd6);
 
-//This function detects if a button is being pressed
-bool buttonpressed(int pin)
-{
-  if (digitalRead(pin) == LOW) return true;
-  else return false;
-}
+//Returns a boolean answer on whether a button on a specific pin is currently being pressed.
+bool buttonpressed(int pin) {if (digitalRead(pin) == LOW) return true; else return false;}
 
 //The settime function is used for setting the time.
 //This had to go before setup() and loop() for it to work with older versions of the Arduino IDE
@@ -70,7 +66,7 @@ int settime(String timeunit, int currentnumber, int maxnumber = 59, int minnumbe
 {
   int time;
 
-  //Might not be needed, may be removed for final release
+  //Only used if the RTC's year is below 2000
   if(currentnumber < minnumber) time = minnumber;
   else time = currentnumber;
 
@@ -84,42 +80,24 @@ int settime(String timeunit, int currentnumber, int maxnumber = 59, int minnumbe
       lcd.setCursor(0, 1);
       lcd.print(time);
       lcd.print(" ");
-      if(dodelay)
-      {
-        delay(250);
-        dodelay = false;
-      }
+      if(dodelay) {delay(250); dodelay = !dodelay;}
+      //If there is a delay requested it will do the delay and turn off the request
       if(buttonpressed(button1))
       {
         tone(buzzerpin, buzzerfreq, buzzertime);
         dodelay = true;
-        if(time == maxnumber)
-        {
-          time = minnumber;
-        }
-        else
-        {
-          time++;
-        }
+        if(time == maxnumber) time = minnumber;
+        else time++;
       }
       if(buttonpressed(button2))
       {
         tone(buzzerpin, buzzerfreq, buzzertime);
         dodelay = true;
-        if(time == minnumber)
-        {
-          time = maxnumber;
-        }
-        else
-        {
-          time--;
-        }
+        if(time == minnumber) time = maxnumber;
+        else time--;
       }
-      if(buttonpressed(button3))
-      {
-        tone(buzzerpin, buzzerfreq, buzzertime);
-        return(time);
-      }
+      //Button3 returns the value (SET BUTTON)
+      if(buttonpressed(button3)) {tone(buzzerpin, buzzerfreq, buzzertime); return(time);}
     }
 }
 
@@ -143,18 +121,13 @@ void completeset()
 
 void playalarm(){
   int alarmdelay = alarmtime;
-  bool runalarm = true;
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Alarm");
-  while(runalarm){
+  while(true){
     tone(buzzerpin, alarmfreq);
-    if (buttonpressed(button1) ||  buttonpressed(button2) || buttonpressed(button3))
-    {
-      //When button is pressed alarm is stopped
-      runalarm = false;
-      alarmdelay = 0;
-    }
+    //When button is pressed alarm is stopped
+    if (buttonpressed(button1) ||  buttonpressed(button2) || buttonpressed(button3)) return 0;
     delay(alarmdelay);
     noTone(buzzerpin);
     delay(alarmdelay);
@@ -165,9 +138,7 @@ void setup() {
   //Initiate the connection to the RTC module and buttons
   Wire.begin();
   DateTime now = myRTC.now();
-  pinMode(button1, INPUT);
-  pinMode(button2, INPUT);
-  pinMode(button3, INPUT);
+  pinMode(button1, INPUT); pinMode(button2, INPUT); pinMode(button3, INPUT);
 
   //This may be different for your LCD.
   //Change to (number of characters on one line, number of lines)
@@ -177,36 +148,22 @@ void setup() {
 
 void loop() {
   DateTime now = myRTC.now();
-  int second, hour, minute, day, month, year, alarmhour, alarmmin;
+  int second, hour, minute, day, month, year, msclock, alarmhour = 0, alarmmin = 0;
   bool alarm;
 
-  hour = now.hour();
-  minute = now.minute();
-  second = now.second();
+  //Fetches time data from RTC
+  hour = now.hour(); minute = now.minute(); second = now.second();
 
   //Made to limit polling for month, day and year to preserve RTC battery
-  if(hour != oldhour){
-    month = now.month();
-    day = now.day();
-    year = now.year();
-  }
+  if(hour != oldhour){month = now.month(); day = now.day(); year = now.year();}
 
   if(buttonpressed(button1)) //Button 1 is the alarm toggle button
   {
     lcd.clear();
     lcd.setCursor(0, 0);
-    if(alarm)
-    {
-      //Turns the alarm off
-      alarm = false;
-      lcd.print("Alarm OFF");
-    }
-    else //If alarm == false
-    {
-      //Turns the alarm on
-      alarm = true;
-      lcd.print("Alarm ON");
-    }
+    alarm = !alarm;
+    if(alarm) lcd.print("Alarm ON");
+    else lcd.print("Alarm OFF");
     delay(2000);
   }
 
@@ -217,10 +174,15 @@ void loop() {
     lcd.print("Set Alarm");
     delay(1500);
     lcd.clear();
+    lcd.print(month);
+    lcd.print("/");
+    lcd.print(day);
+    lcd.print("/");
+    lcd.print(year);
     lcd.setCursor(0 ,0);
-    int alarmhour = settime("Alarm Hour", alarmhour, 23);
+    alarmhour = settime("Alarm Hour", alarmhour, 23);
     delay(500);
-    int alarmmin = settime("Alarm Minute", alarmmin);
+    alarmmin = settime("Alarm Minute", alarmmin);
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("Alarm Set For:");
@@ -228,6 +190,7 @@ void loop() {
     lcd.print(alarmhour);
     lcd.print(":");
     lcd.print(alarmmin);
+    alarm = true;
     delay(1500);
     lcd.clear();
   }
@@ -249,21 +212,14 @@ void loop() {
   lcd.print(":");
   lcd.print(now.second());
   lcd.print("     ");
-  //lcd.setCursor(15, 0);
 
-  if(alarm && hour == alarmhour && minute == alarmmin && second <= 3)
-  {
-    playalarm();
-  }
+  //Checks if it is time to play alarm and if so it runs the alarm function
+  if(alarm && hour == alarmhour && minute == alarmmin && second <= 3) playalarm();
 
+  //Prints alarm symbol if alarm is on and blanks area if it is not
   lcd.setCursor(15, 0);
-  if(alarm){
-    lcd.write(1);
-  }
-  else{
-    lcd.print("  ");
-  }
-  //Print Alarm symbol
+  if(alarm) lcd.write(1);
+  else lcd.print(" ");
 
   lcd.setCursor(0, 1); //Moves down to second line for printing the date
 
@@ -294,5 +250,6 @@ void loop() {
   lcd.print(day);
   */
 
+  //Actual time counting is done on the RTC so this can be changed if you want a higher polling rate (may lower RTC battery and some code might break)
   delay(1000);
 }
