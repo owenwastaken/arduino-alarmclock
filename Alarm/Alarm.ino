@@ -42,6 +42,9 @@ const int alarmfreq = 450; //Alarm frequency
 
 int oldhour = -1; //Used for limiting the polling of day, month, and year from RTC
 
+//Needed to be declared as false at initiation
+bool alarm = false;
+
 //Custom  alarm icon created using https://maxpromer.github.io/LCD-Character-Creator/
 //This can be changed to whatever icon you want
 byte alarmIcon[] = {
@@ -149,7 +152,6 @@ void setup() {
 void loop() {
   DateTime now = myRTC.now();
   int second, hour, minute, day, month, year, msclock, alarmhour = 0, alarmmin = 0;
-  bool alarm;
 
   //Fetches time data from RTC
   hour = now.hour(); minute = now.minute(); second = now.second();
@@ -208,9 +210,11 @@ void loop() {
   lcd.setCursor(0, 0);
   lcd.print(hour);
   lcd.print(":");
+  if (minute < 10) lcd.print("0");
   lcd.print(minute);
   lcd.print(":");
-  lcd.print(now.second());
+  if (second < 10) lcd.print("0");
+  lcd.print(second);
   lcd.print("     ");
 
   //Checks if it is time to play alarm and if so it runs the alarm function
@@ -231,6 +235,7 @@ void loop() {
   lcd.print(day);
   lcd.print("/");
   lcd.print(year);
+  lcd.print("   ");
 
   //This code prints in the EU date format DD/MM/YYYY
   /*
@@ -239,6 +244,7 @@ void loop() {
   lcd.print(month);
   lcd.print("/");
   lcd.print(year);
+  lcd.print("   ");
   */
 
   //This code prints in the ISO date format YYYY/MM/DD
@@ -248,8 +254,9 @@ void loop() {
   lcd.print(month);
   lcd.print("/");
   lcd.print(day);
+  lcd.print("   ");
   */
 
-  //Actual time counting is done on the RTC so this can be changed if you want a higher polling rate (may lower RTC battery and some code might break)
+  //Actual time counting is done on the RTC so this can be changed if you want a higher polling rate
   delay(1000);
 }
