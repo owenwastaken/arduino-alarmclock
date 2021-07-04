@@ -12,6 +12,8 @@ Some sample code was used from the DS3231.h github repository which is also lice
 https://github.com/NorthernWidget/DS3231
 
 To switch the date format from MM/DD/YY to DD/MM/YY or YYYY/MM/DD, go down to the bottom of the script
+
+If you are using a LCD display that is not 16 by 2, you will need to do some changing to the UI.
 */
 
 #include <LiquidCrystal.h>
@@ -44,6 +46,9 @@ int oldhour = -1; //Used for limiting the polling of day, month, and year from R
 
 //Needed to be declared as false at initiation
 bool alarm = false;
+
+//Initiating alarm time as a negative number to prevent people from turning on the alarm before the time is set
+int alarmmin = -1; int alarmhour = -1;
 
 //Custom  alarm icon created using https://maxpromer.github.io/LCD-Character-Creator/
 //This can be changed to whatever icon you want
@@ -129,7 +134,7 @@ void playalarm(){
   lcd.print("Alarm");
   while(true){
     tone(buzzerpin, alarmfreq);
-    //When button is pressed alarm is stopped
+    //When button is pressed alarm is stopped. This might make a harmless error when compiling but can be ignored
     if (buttonpressed(button1) ||  buttonpressed(button2) || buttonpressed(button3)) return 0;
     delay(alarmdelay);
     noTone(buzzerpin);
@@ -151,7 +156,7 @@ void setup() {
 
 void loop() {
   DateTime now = myRTC.now();
-  int second, hour, minute, day, month, year, msclock, alarmhour = 0, alarmmin = 0;
+  int second, hour, minute, day, month, year;
 
   //Fetches time data from RTC
   hour = now.hour(); minute = now.minute(); second = now.second();
@@ -163,9 +168,15 @@ void loop() {
   {
     lcd.clear();
     lcd.setCursor(0, 0);
-    alarm = !alarm;
-    if(alarm) lcd.print("Alarm ON");
-    else lcd.print("Alarm OFF");
+    if(alarmhour != -1 || alarmmin != -1){
+      alarm = !alarm;
+      if(alarm) lcd.print("Alarm ON");
+      else lcd.print("Alarm OFF");
+    }
+    else
+    {
+      lcd.print("No alarm set");
+    }
     delay(2000);
   }
 
@@ -176,21 +187,18 @@ void loop() {
     lcd.print("Set Alarm");
     delay(1500);
     lcd.clear();
-    lcd.print(month);
-    lcd.print("/");
-    lcd.print(day);
-    lcd.print("/");
-    lcd.print(year);
     lcd.setCursor(0 ,0);
     alarmhour = settime("Alarm Hour", alarmhour, 23);
     delay(500);
     alarmmin = settime("Alarm Minute", alarmmin);
     lcd.clear();
+
     lcd.setCursor(0, 0);
     lcd.print("Alarm Set For:");
     lcd.setCursor(0, 1);
     lcd.print(alarmhour);
     lcd.print(":");
+    if (alarmmin < 10) lcd.print("0");
     lcd.print(alarmmin);
     alarm = true;
     delay(1500);
