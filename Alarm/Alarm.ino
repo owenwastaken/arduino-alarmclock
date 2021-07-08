@@ -32,7 +32,7 @@ const int lcd5 = 12;
 const int lcd6 = 13;
 const int button1 = 3; //Up and alarm toggle button
 const int button2 = 5; //Down and alarm set button
-const int button3 = 7; //Set button
+const int button3 = 6; //Set button
 const int buzzerpin = 9; //Buzzer pin
 
 //These two variables are for the clicks when you press a button
@@ -66,7 +66,7 @@ byte alarmIcon[] = {
 LiquidCrystal lcd(lcd1, lcd2, lcd3, lcd4, lcd5, lcd6);
 
 //Returns a boolean answer on whether a button on a specific pin is currently being pressed.
-bool buttonpressed(int pin) {if (digitalRead(pin) == LOW) return true; else return false;}
+bool buttonpressed(int pin) {if (digitalRead(pin) == HIGH) return true; else return false;}
 
 //The settime function is used for setting the time.
 //This had to go before setup() and loop() for it to work with older versions of the Arduino IDE
@@ -115,15 +115,15 @@ void completeset()
   //All of this is for setting the time
   Clock.setClockMode(false); //Sets to 24 hour mode
   Clock.setHour(settime("Hour", now.hour(), 23)); //The settime function has a default max value of 60, so we only have to declare it here
-  delay(500);
+  delay(750);
   Clock.setMinute(settime("Minute", now.minute()));
-  delay(500);
+  delay(750);
   Clock.setSecond(settime("Second", now.second()));
-  delay(500);
+  delay(750);
   Clock.setDate(settime("Day", now.day(), 31, 1));
-  delay(500);
+  delay(750);
   Clock.setMonth(settime("Month", now.month(), 12, 1));
-  delay(500);
+  delay(750);
   Clock.setYear(settime("Year", now.year(), -1, 2000) - 48); //Had to subtract 48 because the RTC module's system time starts in 1952
 }
 
@@ -189,7 +189,7 @@ void loop() {
     lcd.clear();
     lcd.setCursor(0 ,0);
     alarmhour = settime("Alarm Hour", alarmhour, 23);
-    delay(500);
+    delay(750);
     alarmmin = settime("Alarm Minute", alarmmin);
     lcd.clear();
 
