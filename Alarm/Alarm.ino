@@ -25,15 +25,15 @@ DS3231 Clock;
 
 //Declaring data pins
 const int lcd1 = 2;
-const int lcd2 = 3;
-const int lcd3 = 4;
-const int lcd4 = 5;
-const int lcd5 = 6;
-const int lcd6 = 7;
-const int button1 = 8; //Up and alarm toggle button
-const int button2 = 9; //Down and alarm set button
-const int button3 = 10; //Set button
-const int buzzerpin = 11; //Buzzer pin
+const int lcd2 = 4;
+const int lcd3 = 7;
+const int lcd4 = 8;
+const int lcd5 = 12;
+const int lcd6 = 13;
+const int button1 = 3; //Up and alarm toggle button
+const int button2 = 5; //Down and alarm set button
+const int button3 = 7; //Set button
+const int buzzerpin = 9; //Buzzer pin
 
 //These two variables are for the clicks when you press a button
 const int buzzerfreq = 250; //defualt buzzer frequency
