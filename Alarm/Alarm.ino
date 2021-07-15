@@ -135,7 +135,7 @@ void playalarm(){
   while(true){
     tone(buzzerpin, alarmfreq);
     //When button is pressed alarm is stopped. This might make a harmless error when compiling but can be ignored
-    if (buttonpressed(button1) ||  buttonpressed(button2) || buttonpressed(button3)) return 0;
+    if (buttonpressed(button1) ||  buttonpressed(button2) || buttonpressed(button3)) {noTone(buzzerpin); return 0;}
     delay(alarmdelay);
     noTone(buzzerpin);
     delay(alarmdelay);
