@@ -42,10 +42,15 @@ const int buzzertime = 5; //Time that each tone is played (MS)
 const int alarmtime = 500; //How long the alarm beep is (MS)
 const int alarmfreq = 450; //Alarm frequency
 
+const int secstillsleep = 180; //The device will sleep after this many seconds after last interaction
+
 int oldhour = -1; //Used for limiting the polling of day, month, and year from RTC
 
 //Needed to be declared as false at initiation
 bool alarm = false;
+
+//Used for determining when to enter sleep mode
+int sleepcountdown = secstillsleep;
 
 //Initiating alarm time as a negative number to prevent people from turning on the alarm before the time is set
 int alarmmin = -1; int alarmhour = -1;
@@ -88,6 +93,7 @@ int settime(String timeunit, int currentnumber, int maxnumber = 59, int minnumbe
       lcd.print(" ");
       if(dodelay) {delay(250); dodelay = !dodelay;}
       //If there is a delay requested it will do the delay and turn off the request
+
       if(buttonpressed(button1)) {
         tone(buzzerpin, buzzerfreq, buzzertime);
         dodelay = true;
@@ -101,8 +107,7 @@ int settime(String timeunit, int currentnumber, int maxnumber = 59, int minnumbe
         else time--; }
 
       //Button3 returns the value (SET BUTTON)
-      if(buttonpressed(button3)) {tone(buzzerpin, buzzerfreq, buzzertime); return(time);} }
-}
+      if(buttonpressed(button3)) {tone(buzzerpin, buzzerfreq, buzzertime); return(time);} } }
 
 void completeset() {
   DateTime now = myRTC.now();
@@ -118,8 +123,7 @@ void completeset() {
   delay(750);
   Clock.setMonth(settime("Month", now.month(), 12, 1));
   delay(750);
-  Clock.setYear(settime("Year", now.year(), -1, 2000) - 48); //Had to subtract 48 because the RTC module's system time starts in 1952
-}
+  Clock.setYear(settime("Year", now.year(), -1, 2000) - 48); } //Had to subtract 48 because the RTC module's system time starts in 1952
 
 void playalarm() {
   int alarmdelay = alarmtime;
@@ -132,8 +136,7 @@ void playalarm() {
     if (buttonpressed(button1) ||  buttonpressed(button2) || buttonpressed(button3)) {noTone(buzzerpin); return 0;}
     delay(alarmdelay);
     noTone(buzzerpin);
-    delay(alarmdelay); }
-}
+    delay(alarmdelay); } }
 
 void setup() {
   //Initiate the connection to the RTC module and buttons
@@ -144,8 +147,7 @@ void setup() {
   //This may be different for your LCD.
   //Change to (number of characters on one line, number of lines)
   lcd.begin(16, 2);
-  lcd.createChar(1, alarmIcon); //Creating the alarmIcon LCD character in slot 1
-}
+  lcd.createChar(1, alarmIcon); }//Creating the alarmIcon LCD character in slot 1
 
 void loop() {
   DateTime now = myRTC.now();
@@ -161,13 +163,13 @@ void loop() {
   if(buttonpressed(button1)) {
     lcd.clear();
     lcd.setCursor(0, 0);
-    if(alarmhour != -1 || alarmmin != -1){
+    if(alarmhour != -1 || alarmmin != -1) {
       alarm = !alarm;
       if(alarm) lcd.print("Alarm ON");
       else lcd.print("Alarm OFF"); }
     else lcd.print("No alarm set");
     delay(2000);
-  }
+    sleepcountdown = secstillsleep; }
 
   //Alarm set button
   if(buttonpressed(button2)) {
@@ -192,7 +194,7 @@ void loop() {
     alarm = true;
     delay(1500);
     lcd.clear();
-  }
+    sleepcountdown = secstillsleep; }
 
   //Time set button
   if(buttonpressed(button3)) {
@@ -201,7 +203,6 @@ void loop() {
     lcd.print("Set time");
     delay(1500);
     completeset();
-  }
 
   //This code block just displays the current time and date onto the lcd
   lcd.setCursor(0, 0);
@@ -213,9 +214,7 @@ void loop() {
   if (second < 10) lcd.print("0");
   lcd.print(second);
   lcd.print("     ");
-
-  //Checks if it is time to play alarm and if so it runs the alarm function
-  if(alarm && hour == alarmhour && minute == alarmmin && second <= 3) playalarm();
+    sleepcountdown = secstillsleep; }
 
   //Prints alarm symbol if alarm is on and blanks area if it is not
   lcd.setCursor(15, 0);
@@ -257,3 +256,4 @@ void loop() {
   //Actual time counting is done on the RTC so this can be changed if you want a higher polling rate
   delay(1000);
 }
+  if(alarm && hour == alarmhour && minute == alarmmin && second <= 3) {playalarm(); sleepcountdown = secstillsleep;}
