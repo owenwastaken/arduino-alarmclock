@@ -86,7 +86,7 @@ int settime(String timeunit, int currentnumber, int maxnumber = 59, int minnumbe
   bool dodelay;
   while(true) {
       lcd.setCursor(0, 0);
-      lcd.print("Set ");
+      lcd.print(F("Set "));
       lcd.print(timeunit);
       lcd.setCursor(0, 1);
       lcd.print(time);
@@ -113,23 +113,23 @@ void completeset() {
   DateTime now = myRTC.now();
   //All of this is for setting the time
   Clock.setClockMode(false); //Sets to 24 hour mode
-  Clock.setHour(settime("Hour", now.hour(), 23)); //The settime function has a default max value of 60, so we only have to declare it here
+  Clock.setHour(settime(F("Hour"), now.hour(), 23)); //The settime function has a default max value of 60, so we only have to declare it here
   delay(750);
-  Clock.setMinute(settime("Minute", now.minute()));
+  Clock.setMinute(settime(F("Minute"), now.minute()));
   delay(750);
-  Clock.setSecond(settime("Second", now.second()));
+  Clock.setSecond(settime(F("Second"), now.second()));
   delay(750);
-  Clock.setDate(settime("Day", now.day(), 31, 1));
+  Clock.setDate(settime(F("Day"), now.day(), 31, 1));
   delay(750);
-  Clock.setMonth(settime("Month", now.month(), 12, 1));
+  Clock.setMonth(settime(F("Month"), now.month(), 12, 1));
   delay(750);
-  Clock.setYear(settime("Year", now.year(), -1, 2000) - 48); } //Had to subtract 48 because the RTC module's system time starts in 1952
+  Clock.setYear(settime(F("Year"), now.year(), -1, 2000) - 48); } //Had to subtract 48 because the RTC module's system time starts in 1952
 
 void playalarm() {
   int alarmdelay = alarmtime;
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("Alarm");
+  lcd.print(F("Alarm"));
   while(true) {
     tone(buzzerpin, alarmfreq);
     //When button is pressed alarm is stopped. This might make a harmless error when compiling but can be ignored
@@ -168,9 +168,9 @@ void loop() {
       lcd.setCursor(0, 0);
       if(alarmhour != -1 || alarmmin != -1) {
         alarm = !alarm;
-        if(alarm) lcd.print("Alarm ON");
-        else lcd.print("Alarm OFF"); }
-      else lcd.print("No alarm set");
+        if(alarm) lcd.print(F("Alarm ON"));
+        else lcd.print(F("Alarm OFF")); }
+      else lcd.print(F("No alarm set"));
       delay(2000); }
     resetsleepcounter(); }
 
@@ -179,17 +179,17 @@ void loop() {
     if(sleepcountdown != 0) {
       lcd.clear();
       lcd.setCursor(0, 0);
-      lcd.print("Set Alarm");
+      lcd.print(F("Set Alarm"));
       delay(1500);
       lcd.clear();
       lcd.setCursor(0 ,0);
-      alarmhour = settime("Alarm Hour", alarmhour, 23);
+      alarmhour = settime(F("Alarm Hour"), alarmhour, 23);
       delay(750);
-      alarmmin = settime("Alarm Minute", alarmmin);
+      alarmmin = settime(F("Alarm Minute"), alarmmin);
       lcd.clear();
 
       lcd.setCursor(0, 0);
-      lcd.print("Alarm Set For:");
+      lcd.print(F("Alarm Set For:"));
       lcd.setCursor(0, 1);
       lcd.print(alarmhour);
       lcd.print(":");
@@ -205,7 +205,7 @@ void loop() {
     if(sleepcountdown != 0) {
       lcd.clear();
       lcd.setCursor(0, 0);
-      lcd.print("Set time");
+      lcd.print(F("Set time"));
       delay(1500);
       completeset(); }
     resetsleepcounter(); }
