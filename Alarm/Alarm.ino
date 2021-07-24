@@ -75,6 +75,7 @@ bool buttonpressed(int pin) {if (digitalRead(pin) == HIGH) return true; else ret
 
 //The following block of functions are commonly used commands that have been turned into functions to save space
 void resetlcdcursor() {lcd.setCursor(0, 0);}
+void printzero(int number) {if (number < 10) lcd.print("0");}
 
 //The settime function is used for setting the time.
 //This had to go before setup() and loop() for it to work with older versions of the Arduino IDE
@@ -92,8 +93,8 @@ int settime(String timeunit, int currentnumber, int maxnumber = 59, int minnumbe
       lcd.print(F("Set "));
       lcd.print(timeunit);
       lcd.setCursor(0, 1);
+      printzero(time);
       lcd.print(time);
-      lcd.print(" ");
       if(dodelay) {delay(250); dodelay = !dodelay;}
       //If there is a delay requested it will do the delay and turn off the request
 
@@ -196,7 +197,7 @@ void loop() {
       lcd.setCursor(0, 1);
       lcd.print(alarmhour);
       lcd.print(":");
-      if (alarmmin < 10) lcd.print("0");
+      printzero(alarmmin);
       lcd.print(alarmmin);
       alarm = true;
       delay(1500);
@@ -221,10 +222,10 @@ void loop() {
     resetlcdcursor();
     lcd.print(hour);
     lcd.print(":");
-    if (minute < 10) lcd.print("0");
+    printzero(minute);
     lcd.print(minute);
     lcd.print(":");
-    if (second < 10) lcd.print("0");
+    printzero(second);
     lcd.print(second);
     lcd.print("  ");
 
