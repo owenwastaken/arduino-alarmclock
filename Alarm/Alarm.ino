@@ -73,6 +73,9 @@ LiquidCrystal lcd(lcd1, lcd2, lcd3, lcd4, lcd5, lcd6);
 //Returns a boolean answer on whether a button on a specific pin is currently being pressed.
 bool buttonpressed(int pin) {if (digitalRead(pin) == HIGH) return true; else return false;}
 
+//The following block of functions are commonly used commands that have been turned into functions to save space
+void resetlcdcursor() {lcd.setCursor(0, 0);}
+
 //The settime function is used for setting the time.
 //This had to go before setup() and loop() for it to work with older versions of the Arduino IDE
 int settime(String timeunit, int currentnumber, int maxnumber = 59, int minnumber = 0) {
@@ -128,7 +131,7 @@ void completeset() {
 void playalarm() {
   int alarmdelay = alarmtime;
   lcd.clear();
-  lcd.setCursor(0, 0);
+  resetlcdcursor();
   lcd.print(F("Alarm"));
   while(true) {
     tone(buzzerpin, alarmfreq);
@@ -165,7 +168,7 @@ void loop() {
   if(buttonpressed(button1)) {
     if(sleepcountdown != 0) {
       lcd.clear();
-      lcd.setCursor(0, 0);
+      resetlcdcursor();
       if(alarmhour != -1 || alarmmin != -1) {
         alarm = !alarm;
         if(alarm) lcd.print(F("Alarm ON"));
@@ -178,17 +181,17 @@ void loop() {
   if(buttonpressed(button2)) {
     if(sleepcountdown != 0) {
       lcd.clear();
-      lcd.setCursor(0, 0);
+      resetlcdcursor();
       lcd.print(F("Set Alarm"));
       delay(1500);
       lcd.clear();
-      lcd.setCursor(0 ,0);
+      resetlcdcursor();
       alarmhour = settime(F("Alarm Hour"), alarmhour, 23);
       delay(750);
       alarmmin = settime(F("Alarm Minute"), alarmmin);
       lcd.clear();
 
-      lcd.setCursor(0, 0);
+      resetlcdcursor();
       lcd.print(F("Alarm Set For:"));
       lcd.setCursor(0, 1);
       lcd.print(alarmhour);
@@ -204,7 +207,7 @@ void loop() {
   if(buttonpressed(button3)) {
     if(sleepcountdown != 0) {
       lcd.clear();
-      lcd.setCursor(0, 0);
+      resetlcdcursor();
       lcd.print(F("Set time"));
       delay(1500);
       completeset(); }
@@ -215,7 +218,7 @@ void loop() {
   //Code block manages printing to lcd and sleep mode
   //After a predetermined amount of time the LCD will go blank to preserve the life of it.
   if(sleepcountdown != 0){
-    lcd.setCursor(0, 0);
+    resetlcdcursor();
     lcd.print(hour);
     lcd.print(":");
     if (minute < 10) lcd.print("0");
