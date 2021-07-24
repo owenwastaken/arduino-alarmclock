@@ -87,11 +87,11 @@ int settime(String timeunit, int currentnumber, int maxnumber = 59, int minnumbe
   else time = currentnumber;
 
   lcd.clear();
+  resetlcdcursor();
+  lcd.print(F("Set "));
+  lcd.print(timeunit);
   bool dodelay;
   while(true) {
-      lcd.setCursor(0, 0);
-      lcd.print(F("Set "));
-      lcd.print(timeunit);
       lcd.setCursor(0, 1);
       printzero(time);
       lcd.print(time);
