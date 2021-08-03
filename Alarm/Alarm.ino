@@ -82,6 +82,7 @@ bool buttonpressed(int pin) {if (digitalRead(pin) == HIGH) return true; else ret
 //The following block of functions are commonly used commands that have been turned into functions to save space
 void resetlcdcursor() {lcd.setCursor(0, 0);}
 void printzero(int number) {if (number < 10) lcd.print("0");}
+void resetsleepcounter() {sleepcountdown = secstillsleep;}
 
 //The settime function is used for setting the time.
 //This had to go before setup() and loop() for it to work with older versions of the Arduino IDE
@@ -148,7 +149,6 @@ void playalarm() {
     noTone(buzzerpin);
     delay(alarmdelay); } }
 
-void resetsleepcounter() {sleepcountdown = secstillsleep;}
 bool ultrasonicwake() {
   digitalWrite(ultrasonictrigger, HIGH);
   delayMicroseconds(10);
@@ -161,7 +161,6 @@ void setup() {
   //Initiate the connection to the RTC module and buttons
   Wire.begin();
   DateTime now = myRTC.now();
-  pinMode(button1, INPUT); pinMode(button2, INPUT); pinMode(button3, INPUT);
   pinMode(button1, INPUT); pinMode(button2, INPUT); pinMode(button3, INPUT); pinMode(ultrasonictrigger, OUTPUT); pinMode(ultrasonicecho, INPUT);
 
   //This may be different for your LCD.
