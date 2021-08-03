@@ -34,6 +34,8 @@ const int button1 = 3; //Up and alarm toggle button
 const int button2 = 5; //Down and alarm set button
 const int button3 = 6; //Set button
 const int buzzerpin = 9; //Buzzer pin
+const int ultrasonictrigger = 10; //Ultrasonic sensor's "Trig" pin
+const int ultrasonicecho = 11; //Ultrasonic sensor's "Echo" pin
 
 //These two variables are for the clicks when you press a button
 const int buzzerfreq = 250; //defualt buzzer frequency
@@ -42,12 +44,16 @@ const int buzzertime = 5; //Time that each tone is played (MS)
 const int alarmtime = 500; //How long the alarm beep is (MS)
 const int alarmfreq = 450; //Alarm frequency
 
-const int secstillsleep = 180; //The device will sleep after this many seconds after last interaction
+const int secstillsleep = 30; //The device will sleep after this many seconds after last interaction
+const byte distancechangetowake = 25; //How much difference in distance is needed to wake the screen (CM). Setting this too low will lead to false positives
+const byte distancelimit =  20; //Limits how far out the ultrasonic sensor will check for movement changes. (CM)
 
 int oldhour = -1; //Used for limiting the polling of day, month, and year from RTC
 
 //Needed to be declared as false at initiation
 bool alarm = false;
+
+long olddistance = 0;
 
 //Used for determining when to enter sleep mode
 int sleepcountdown = secstillsleep;
@@ -143,12 +149,20 @@ void playalarm() {
     delay(alarmdelay); } }
 
 void resetsleepcounter() {sleepcountdown = secstillsleep;}
+bool ultrasonicwake() {
+  digitalWrite(ultrasonictrigger, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(ultrasonictrigger, LOW);
+  long distance = (pulseIn(ultrasonicecho, HIGH) * 0.017);
+  if ((distance < distancelimit) && (distance - olddistance) < distancechangetowake) {olddistance = distance; return true;}
+  else {olddistance = distance; return false;} }
 
 void setup() {
   //Initiate the connection to the RTC module and buttons
   Wire.begin();
   DateTime now = myRTC.now();
   pinMode(button1, INPUT); pinMode(button2, INPUT); pinMode(button3, INPUT);
+  pinMode(button1, INPUT); pinMode(button2, INPUT); pinMode(button3, INPUT); pinMode(ultrasonictrigger, OUTPUT); pinMode(ultrasonicecho, INPUT);
 
   //This may be different for your LCD.
   //Change to (number of characters on one line, number of lines)
@@ -215,6 +229,8 @@ void loop() {
       completeset(); }
       lcd.clear();
     resetsleepcounter(); }
+
+  if (ultrasonicwake()) resetsleepcounter();
 
   if(alarm && hour == alarmhour && minute == alarmmin && second <= 3) {playalarm(); resetsleepcounter();}
 
